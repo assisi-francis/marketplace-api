@@ -15,6 +15,11 @@ jest.unstable_mockModule('../src/services/cloudinaryService.js', () => ({
   deleteImage: jest.fn(async () => {}),
 }));
 
+jest.unstable_mockModule('../src/services/emailService.js', () => ({
+  sendWelcomeEmail: jest.fn().mockResolvedValue(true),
+  sendEmail: jest.fn().mockResolvedValue(true),
+}));
+
 const { default: app } = await import('../src/app.js');
 const { sequelize, User, Product } = await import('../src/models/index.js');
 const cloudinaryService = await import('../src/services/cloudinaryService.js');

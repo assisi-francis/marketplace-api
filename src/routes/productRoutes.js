@@ -1,19 +1,25 @@
 import express from 'express';
 import {
-  getProducts,
-  getProductById,
+  listProducts,
+  getProduct,
   createProduct,
   updateProduct,
-  deleteProduct
+  deleteProduct,
 } from '../controllers/productController.js';
-import { authenticate, authorizeAdmin } from '../middleware/auth.js';
+import { authenticate, requireAdmin } from '../middleware/auth.js';
+import upload from '../middleware/upload.js';
 
 const router = express.Router();
 
-router.get('/', getProducts);
-router.get('/:id', getProductById);
-router.post('/', authenticate, authorizeAdmin, createProduct);
-router.put('/:id', authenticate, authorizeAdmin, updateProduct);
-router.delete('/:id', authenticate, authorizeAdmin, deleteProduct);
+// Public
+router.get('/', listProducts);
+router.get('/:id', getProduct);
+
+// Admin only. Order matters: authenticate/requireAdmin run before
+// upload — no point parsing a file from a request that's about to
+// get a 403 anyway.
+router.post('/', authenticate, requireAdmin, upload.single('image'), createProduct);
+router.put('/:id', authenticate, requireAdmin, upload.single('image'), updateProduct);
+router.delete('/:id', authenticate, requireAdmin, deleteProduct);
 
 export default router;
