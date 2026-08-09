@@ -1,67 +1,96 @@
-import { DataTypes } from 'sequelize';
+import { Sequelize, DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 
+// 1. Define User Model
 const User = sequelize.define('User', {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-  },
   name: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: false
   },
   email: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
-    validate: { isEmail: true },
+    unique: true
   },
   password: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: false
   },
   role: {
     type: DataTypes.STRING,
-    defaultValue: 'customer',
-  },
+    defaultValue: 'customer'
+  }
 });
 
+// 2. Define Product Model
 const Product = sequelize.define('Product', {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-  },
   name: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: false
   },
   description: {
-    type: DataTypes.TEXT,
-    allowNull: true,
+    type: DataTypes.TEXT
   },
   price: {
-    type: DataTypes.DECIMAL(10, 2), // exact decimal — never FLOAT for money
-    allowNull: false,
+    type: DataTypes.FLOAT,
+    allowNull: false
   },
   stock: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
+    defaultValue: 0
   },
   category: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  imageUrl: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  imagePublicId: {
-    type: DataTypes.STRING,
-    allowNull: true, // Cloudinary's file identifier — needed to delete/replace the image later
-  },
+    type: DataTypes.STRING
+  }
 });
 
-export { sequelize, User, Product };
+// 3. Define Order Model
+const Order = sequelize.define('Order', {
+  totalAmount: {
+    type: DataTypes.FLOAT,
+    allowNull: false
+  },
+  status: {
+    type: DataTypes.STRING,
+    defaultValue: 'pending'
+  }
+});
+
+// 4. Define OrderItem Model
+const OrderItem = sequelize.define('OrderItem', {
+  quantity: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  price: {
+    type: DataTypes.FLOAT,
+    allowNull: false
+  }
+});
+
+// 5. Define Relationships
+User.hasMany(Order, { foreignKey: 'userId' });
+Order.belongsTo(User, { foreignKey: 'userId' });
+
+Order.hasMany(OrderItem, { foreignKey: 'orderId', as: 'items' });
+OrderItem.belongsTo(Order, { foreignKey: 'orderId' });
+
+Product.hasMany(OrderItem, { foreignKey: 'productId' });
+OrderItem.belongsTo(Product, { foreignKey: 'productId' });
+
+// 6. Export Models and Sequelize Instance
+export {
+  sequelize,
+  User,
+  Product,
+  Order,
+  OrderItem
+};
+
+export default {
+  sequelize,
+  User,
+  Product,
+  Order,
+  OrderItem
+};
