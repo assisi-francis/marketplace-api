@@ -1,10 +1,12 @@
 import express from 'express';
 import authRoutes from './authRoutes.js';
+import productRoutes from './productRoutes.js';
+import orderRoutes from './orderRoutes.js';
 
 const router = express.Router();
 
 router.use('/auth', authRoutes);
-
-// Members 2 and 3 will add their own router.use() lines here
+router.use('/products', productRoutes);
+router.use('/orders', orderRoutes);
 
 export default router;
