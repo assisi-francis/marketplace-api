@@ -1,6 +1,14 @@
+import { jest } from '@jest/globals';
 import request from 'supertest';
-import app from '../src/app.js';
-import { sequelize } from '../src/models/index.js';
+
+jest.unstable_mockModule('../src/services/emailService.js', () => ({
+  sendWelcomeEmail: jest.fn().mockResolvedValue(true),
+  sendEmail: jest.fn().mockResolvedValue(true),
+}));
+
+const { default: app } = await import('../src/app.js');
+const { sequelize } = await import('../src/models/index.js');
+const { authenticate, requireAdmin } = await import('../src/middleware/auth.js');
 
 beforeAll(async () => {
   await sequelize.sync({ force: true });
@@ -49,5 +57,33 @@ describe('Auth', () => {
       password: 'wrongpassword',
     });
     expect(res.statusCode).toBe(401);
+  });
+});
+
+describe('Auth Middleware', () => {
+  it('returns 401 when no token is provided', () => {
+    const req = { headers: {} };
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+    };
+    const next = jest.fn();
+
+    authenticate(req, res, next);
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('returns 403 when user is not admin', () => {
+    const req = { user: { role: 'customer' } };
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+    };
+    const next = jest.fn();
+
+    requireAdmin(req, res, next);
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(next).not.toHaveBeenCalled();
   });
 });
